@@ -1,4 +1,6 @@
+import { ethers } from "ethers";
 import React, { useEffect, useState } from "react";
+import useContract from "../../hooks/useContract";
 import {
   AppContainer,
   AppTitle,
@@ -15,11 +17,16 @@ import {
 const create = () => {
   const [title, setTitle] = useState("");
   const [sessionId, setSessionId] = useState("");
-  const [candidates, setCandidates] = useState(["Candidate 1", "Candidate 2"]);
+  const [candidates, setCandidates] = useState(["", ""]);
+  const votingContract = useContract("voting");
 
-  const submitSession = (e) => {
-    e.preventDefault();
-    console.log("Submit");
+  const createSession = async (event) => {
+    event.preventDefault();
+    const titleBytes = ethers.utils.formatBytes32String(title);
+    const candidatesBytes = candidates.map((candidate) => {
+      return ethers.utils.formatBytes32String(candidate);
+    });
+    await votingContract.createVoting(titleBytes, sessionId, candidatesBytes);
   };
 
   const sessionInputHandler = (value) => {
@@ -45,26 +52,19 @@ const create = () => {
 
   const candidatesIncrement = () => {
     if (candidates.length >= 5) return;
-    setCandidates((currentCandidates) => [
-      ...currentCandidates,
-      "Candidate " + parseInt(candidates.length + 1),
-    ]);
+    setCandidates((currentCandidates) => [...currentCandidates, ""]);
   };
 
   const candidatesDecrement = () => {
     if (candidates.length <= 2) return;
-    const lastCandidate = "Candidate " + candidates.length;
-    setCandidates((currentCandidates) =>
-      currentCandidates.filter((candidate) => candidate !== lastCandidate)
-    );
+    setCandidates((currentCandidates) => currentCandidates.slice(0, -1));
   };
 
-  useEffect(() => {}, [candidates]);
   return (
     <AppContainer>
       <AppTitle>Create Session</AppTitle>
 
-      <Form onSubmit={(e) => submitSession(e)}>
+      <Form onSubmit={(e) => createSession(e)}>
         <Section>
           <Text align={"center"}>Session Id</Text>
           <Input
@@ -77,7 +77,12 @@ const create = () => {
 
         <Section>
           <Text align={"center"}>Title</Text>
-          <Input type={"text"} onChange={titleInpuHandler} width={"15rem"} />
+          <Input
+            type={"text"}
+            value={title}
+            onChange={(e) => titleInpuHandler(e.target.value)}
+            width={"15rem"}
+          />
         </Section>
 
         <Section>
@@ -89,7 +94,8 @@ const create = () => {
                   key={index}
                   type={"text"}
                   width={"15rem"}
-                  placeholder={candidate}
+                  value={candidate}
+                  placeholder={"Candidates " + parseInt(index + 1)}
                   onChange={(e) =>
                     candidatesInputHandler(index, e.target.value)
                   }
@@ -99,14 +105,21 @@ const create = () => {
 
             <FlexRow justifyContent={"center"} alignItems={"center"}>
               <Button
+                type="button"
                 width={"2rem"}
                 height={"2rem"}
                 onClick={candidatesDecrement}
               >
                 {"<"}
               </Button>
-              <Input type={"number"} value={candidates.length} width={"5rem"} />
+              <Input
+                type={"number"}
+                value={candidates.length}
+                readOnly
+                width={"5rem"}
+              />
               <Button
+                type="button"
                 width={"2rem"}
                 height={"2rem"}
                 onClick={candidatesIncrement}
@@ -118,7 +131,7 @@ const create = () => {
         </Section>
 
         <Section>
-          <Submit type={"submit"} />
+          <Submit type={"submit"} value={"Create Session"} />
         </Section>
       </Form>
     </AppContainer>
