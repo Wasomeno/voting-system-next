@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import AppContext from "../../context/AppContext";
 import useContract from "../../hooks/useContract";
 import {
@@ -14,20 +14,17 @@ import {
 } from "../../styles/styled-components/app/appComponents";
 
 export default function AppHome() {
-  const [sessionId, setSessionId] = useState("");
+  const sessionRef = useRef();
   const [result, setResult] = useState(false);
   const votingContract = useContract("voting");
   const toast = useContext(AppContext).toast;
 
   const findSession = async () => {
-    const result = await votingContract.checkSession(sessionId);
+    const session = sessionRef.current.value;
+    const result = await votingContract.checkSession(session);
+    console.log(session);
     toast.success("Session Found");
     setResult(result);
-  };
-
-  const sessionInputHandler = (value) => {
-    if (value.length >= 10) return;
-    setSessionId(value);
   };
 
   const submitSession = (form) => {
@@ -47,11 +44,7 @@ export default function AppHome() {
         <Form onSubmit={(e) => submitSession(e)}>
           <Section>
             <Text>Input session Id</Text>
-            <Input
-              type={"number"}
-              value={sessionId}
-              onChange={(e) => sessionInputHandler(e.target.value)}
-            />
+            <Input type={"number"} ref={sessionRef} />
           </Section>
           <Section>
             <Submit type={"submit"} value="Find Session" />
@@ -62,7 +55,7 @@ export default function AppHome() {
           <Link
             href={{
               pathname: "/app/sessions/[sessionId]",
-              query: { sessionId },
+              query: { sessionId: sessionRef.current.value },
             }}
           >
             <Button width={"10rem"} height={"3rem"}>
