@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
+import AppContext from "../../context/AppContext";
 import {
   AppContainer,
   AppTitle,
@@ -11,35 +12,16 @@ import {
 } from "../../styles/styled-components/app/appComponents";
 
 const register = () => {
-  const [details, setDetails] = useState({
-    session: "",
-    username: "",
-    secret: "",
-  });
+  const session = useRef();
+  const username = useRef();
+  const secret = useRef();
+  const detailsRef = useRef({ session, username, secret });
+
+  const toast = useContext(AppContext).toast;
 
   const submitRegistration = (form) => {
     form.preventDefault();
-  };
-
-  const sessionInputHandler = (value) => {
-    setDetails((currentDetails) => ({
-      ...currentDetails,
-      session: value,
-    }));
-  };
-
-  const usernameInputHandler = (value) => {
-    setDetails((currentDetails) => ({
-      ...currentDetails,
-      username: value,
-    }));
-  };
-
-  const secretInputHandler = (value) => {
-    setDetails((currentDetails) => ({
-      ...currentDetails,
-      secret: value,
-    }));
+    toast.success("Test");
   };
 
   useEffect(() => {}, []);
@@ -51,10 +33,9 @@ const register = () => {
         <Section>
           <Text align={"center"}>Voting Session ID</Text>
           <Input
+            ref={detailsRef.current.session}
             type={"number"}
             width={"15rem"}
-            value={details.session}
-            onChange={(e) => sessionInputHandler(e.target.value)}
           />
         </Section>
 
@@ -63,8 +44,7 @@ const register = () => {
           <Input
             type={"text"}
             width={"15rem"}
-            value={details.username}
-            onChange={(e) => usernameInputHandler(e.target.value)}
+            ref={detailsRef.current.username}
           />
         </Section>
 
@@ -73,8 +53,7 @@ const register = () => {
           <Input
             type={"number"}
             width={"15rem"}
-            value={details.secret}
-            onChange={(e) => secretInputHandler(e.target.value)}
+            ref={detailsRef.current.secret}
           />
         </Section>
         <FlexRow justifyContent={"center"}>
