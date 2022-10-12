@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import useContract from "../../hooks/useContract";
 import {
   AppContainer,
@@ -15,28 +15,19 @@ import {
 } from "../../styles/styled-components/app/appComponents";
 
 const create = () => {
-  const [title, setTitle] = useState("");
-  const [sessionId, setSessionId] = useState("");
+  const titleRef = useRef();
+  const sessionRef = useRef();
   const [candidates, setCandidates] = useState(["", ""]);
   const votingContract = useContract("voting");
 
   const createSession = async (event) => {
     event.preventDefault();
-    const titleBytes = ethers.utils.formatBytes32String(title);
+    const session = sessionRef.current.value;
+    const titleBytes = ethers.utils.formatBytes32String(titleRef.current.value);
     const candidatesBytes = candidates.map((candidate) => {
       return ethers.utils.formatBytes32String(candidate);
     });
-    await votingContract.createVoting(titleBytes, sessionId, candidatesBytes);
-  };
-
-  const sessionInputHandler = (value) => {
-    if (value.length >= 10) return;
-    setSessionId(value);
-  };
-
-  const titleInpuHandler = (value) => {
-    if (value.length >= 100) return;
-    setTitle(value);
+    await votingContract.createVoting(titleBytes, session, candidatesBytes);
   };
 
   const candidatesInputHandler = (inputIndex, value) => {
@@ -67,22 +58,12 @@ const create = () => {
       <Form onSubmit={(e) => createSession(e)}>
         <Section>
           <Text align={"center"}>Session Id</Text>
-          <Input
-            type={"number"}
-            value={sessionId}
-            onChange={(e) => sessionInputHandler(e.target.value)}
-            width={"15rem"}
-          />
+          <Input ref={sessionRef} type={"number"} width={"15rem"} />
         </Section>
 
         <Section>
           <Text align={"center"}>Title</Text>
-          <Input
-            type={"text"}
-            value={title}
-            onChange={(e) => titleInpuHandler(e.target.value)}
-            width={"15rem"}
-          />
+          <Input ref={titleRef} type={"text"} width={"15rem"} />
         </Section>
 
         <Section>
