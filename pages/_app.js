@@ -1,6 +1,7 @@
 import { useRouter } from "next/router";
 import Layout from "../components/Layout";
 import "../styles/globals.css";
+import { AnimatePresence } from "framer-motion";
 import AppContext from "../context/AppContext";
 import { useState } from "react";
 import useToast, { Toast } from "../components/modal/Toast";
@@ -13,25 +14,27 @@ function MyApp({ Component, pageProps }) {
   const [account, setAccount] = useState([]);
   const queryClient = new QueryClient();
   return (
-    <QueryClientProvider client={queryClient}>
-      <AppContext.Provider
-        value={{
-          user: account[0],
-          setAccount: setAccount,
-          toast: {
-            success: success,
-            error: error,
-            text: text,
-            show: show,
-          },
-        }}
-      >
-        <Layout path={basePath[1]}>
-          <Component {...pageProps} />
-          <Toast />
-        </Layout>
-      </AppContext.Provider>
-    </QueryClientProvider>
+    <AnimatePresence>
+      <QueryClientProvider client={queryClient}>
+        <AppContext.Provider
+          value={{
+            user: account[0],
+            setAccount: setAccount,
+            toast: {
+              success: success,
+              error: error,
+              text: text,
+              show: show,
+            },
+          }}
+        >
+          <Layout path={basePath[1]}>
+            <Component {...pageProps} />
+            <Toast />
+          </Layout>
+        </AppContext.Provider>
+      </QueryClientProvider>
+    </AnimatePresence>
   );
 }
 
