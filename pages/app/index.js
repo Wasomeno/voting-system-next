@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { useContext, useEffect, useRef, useState } from "react";
+import AnimatedContainer from "../../components/AnimatedContainer";
 import AppContext from "../../context/AppContext";
 import useContract from "../../hooks/useContract";
 import {
@@ -35,7 +36,7 @@ export default function AppHome() {
   useEffect(() => {}, [result]);
 
   return (
-    <AppContainer>
+    <AnimatedContainer>
       <AppTitle>Welcome to the Entrance</AppTitle>
       <video width="320" height="240" autoPlay muted loop>
         <source src="/vote-hero.mp4" type="video/mp4" />
@@ -64,6 +65,6 @@ export default function AppHome() {
           </Link>
         </Section>
       )}
-    </AppContainer>
+    </AnimatedContainer>
   );
 }

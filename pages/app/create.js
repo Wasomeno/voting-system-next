@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
 import React, { useEffect, useRef, useState } from "react";
+import AnimatedContainer from "../../components/AnimatedContainer";
 import useContract from "../../hooks/useContract";
 import {
   AppContainer,
@@ -52,7 +53,7 @@ const create = () => {
   };
 
   return (
-    <AppContainer>
+    <AnimatedContainer>
       <AppTitle>Create Session</AppTitle>
 
       <Form onSubmit={(e) => createSession(e)}>
@@ -115,7 +116,7 @@ const create = () => {
           <Submit type={"submit"} value={"Create Session"} />
         </Section>
       </Form>
-    </AppContainer>
+    </AnimatedContainer>
   );
 };
 
