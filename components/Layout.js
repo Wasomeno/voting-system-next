@@ -1,11 +1,23 @@
-import React from "react";
+import React, { useContext, useEffect } from "react";
+import AppContext from "../context/AppContext";
 import Navigation from "./Navigation";
+import NotConnected from "./NotConnected";
 
 const Layout = ({ children, path }) => {
+  const user = useContext(AppContext).user;
+  const isConnected = Boolean(user);
+
+  useEffect(() => {}, [user]);
   return (
     <>
-      <Navigation path={path} />
-      {children}
+      {isConnected ? (
+        <>
+          <Navigation path={path} />
+          {children}
+        </>
+      ) : (
+        <NotConnected />
+      )}
     </>
   );
 };
