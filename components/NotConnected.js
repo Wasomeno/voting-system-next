@@ -1,4 +1,6 @@
-import React, { useContext } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
+import React, { useContext, useEffect } from "react";
 import AppContext from "../context/AppContext";
 import {
   Button,
@@ -9,20 +11,55 @@ import {
 
 const NotConnected = () => {
   const setAccount = useContext(AppContext).setAccount;
-  async function connectAccount() {
+  const loading = useContext(AppContext).loading;
+  const toast = useContext(AppContext).toast;
+  const fetchedChain = useQuery(["chainId"], () => getChainId());
+
+  const connectAccount = async () => {
     if (window.ethereum) {
       const account = await window.ethereum.request({
         method: "eth_requestAccounts",
       });
       setAccount(account);
     }
+  };
+
+  async function getChainId() {
+    const chainId = await window.ethereum.request({ method: "eth_chainId" });
+    if (chainId !== 5) toast.error("Wrong Chain");
+    return chainId;
   }
+
+  useEffect(() => {
+    loading.setText("Getting Details");
+    loading.toggle();
+    console.log(parseInt(fetchedChain.data));
+  }, [fetchedChain.isLoading]);
+
+  if (fetchedChain.isLoading) return;
   return (
-    <Container>
-      <Title>Connect Your Wallet</Title>
-      <Button onClick={connectAccount}>Connect</Button>
-      <Text>you need to connect your wallet first to access the site.</Text>
-    </Container>
+    <>
+      <Container
+        as={motion.main}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ type: "tween", duration: 0.5 }}
+      >
+        <Title>Connect Your Wallet</Title>
+        <Button
+          disabled={parseInt(fetchedChain.data) !== 5}
+          onClick={connectAccount}
+        >
+          Connect
+        </Button>
+        {parseInt(fetchedChain.data) !== 5 ? (
+          <Text>You're connected to the wrong network</Text>
+        ) : (
+          <Text>you need to connect your wallet first to access the site.</Text>
+        )}
+      </Container>
+    </>
   );
 };
 
