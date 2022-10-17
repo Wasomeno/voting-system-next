@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import React, { useContext, useEffect } from "react";
 import AppContext from "../context/AppContext";
+import { useLoading, useToast } from "../stores/stores";
 import {
   Button,
   Container,
@@ -11,8 +12,8 @@ import {
 
 const NotConnected = () => {
   const setAccount = useContext(AppContext).setAccount;
-  const loading = useContext(AppContext).loading;
-  const toast = useContext(AppContext).toast;
+  const [error] = useToast();
+  const [, setLoading] = useLoading();
   const fetchedChain = useQuery(["chainId"], () => getChainId());
 
   const connectAccount = async () => {
@@ -25,15 +26,19 @@ const NotConnected = () => {
   };
 
   async function getChainId() {
-    const chainId = await window.ethereum.request({ method: "eth_chainId" });
-    if (chainId !== 5) toast.error("Wrong Chain");
+    const chainId = parseInt(
+      await window.ethereum.request({ method: "eth_chainId" })
+    );
+    if (chainId !== 5) error("Wrong Chain");
     return chainId;
   }
 
   useEffect(() => {
-    loading.setText("Getting Details");
-    loading.toggle();
-    console.log(parseInt(fetchedChain.data));
+    if (fetchedChain.isFetching) {
+      setLoading(true);
+    } else {
+      setLoading(false);
+    }
   }, [fetchedChain.isLoading]);
 
   if (fetchedChain.isLoading) return;
