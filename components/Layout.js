@@ -7,7 +7,6 @@ const Layout = ({ children, path }) => {
   const user = useContext(AppContext).user;
   const isConnected = Boolean(user);
 
-  useEffect(() => {}, [user]);
   return (
     <>
       {isConnected ? (
