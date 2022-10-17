@@ -8,8 +8,10 @@ import {
 } from "../styles/styled-components/home/navigationComponents";
 import { useContext } from "react";
 import AppContext from "../context/AppContext";
+import { useRouter } from "next/router";
 
 const AppNavigation = () => {
+  const router = useRouter();
   const user = useContext(AppContext).user;
   const isConnected = Boolean(user);
   const setAccount = useContext(AppContext).setAccount;
@@ -26,21 +28,25 @@ const AppNavigation = () => {
   return (
     <NavContainer>
       <Link href={"/app"}>
-        <NavButton>App</NavButton>
+        <NavButton isActive={router.pathname === "/app"}>App</NavButton>
       </Link>
 
       <Link href={"/app/create"}>
-        <NavButton>Create Session</NavButton>
+        <NavButton isActive={router.pathname === "/app/create"}>
+          Create Session
+        </NavButton>
       </Link>
 
       <Link href={"/app/register"}>
-        <NavButton>Register Session</NavButton>
+        <NavButton isActive={router.pathname === "/app/register"}>
+          Register Session
+        </NavButton>
       </Link>
 
       {isConnected ? (
         <Link href={"/app/profile"}>
-          <NavButton>
-            <Icon src="button.png" />
+          <NavButton isActive={router.pathname === "/app/profile"}>
+            <Icon src="/button.png" />
             {user.slice(0, 12)}...
           </NavButton>
         </Link>
