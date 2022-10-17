@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { BigNumber } from "ethers";
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import AnimatedContainer from "../../components/AnimatedContainer";
+import { Toast } from "../../components/modal/Toast";
 import AppContext from "../../context/AppContext";
 import useContract from "../../hooks/useContract";
+import { useLoading } from "../../stores/stores";
 import {
-  AppContainer,
   AppTitle,
   Table,
   TableData,
@@ -15,8 +16,9 @@ import {
 
 const profile = () => {
   const voterDataContract = useContract("voterData");
-  const historyFetched = useQuery(["voterHistory"], () => getHistory());
+  const fetchedHistory = useQuery(["voterHistory"], () => getHistory());
   const user = useContext(AppContext).user;
+  const [, setLoading] = useLoading();
 
   const getHistory = async () => {
     const history = await voterDataContract.getVoterHistory(user);
@@ -28,34 +30,46 @@ const profile = () => {
     return string;
   };
 
+  useEffect(() => {
+    if (fetchedHistory.isFetching) {
+      setLoading(true);
+    } else {
+      setLoading(false);
+    }
+  }, [fetchedHistory.isLoading]);
+
   return (
-    <AnimatedContainer isLoading={historyFetched.isLoading}>
-      {!historyFetched.isLoading ? (
+    <AnimatedContainer justifyContent={"start"} alignItems={"center"}>
+      {!fetchedHistory.isLoading ? (
         <>
-          <AppTitle>Profile</AppTitle>
+          <AppTitle fontSize="52px">Profile</AppTitle>
           <Text>Your history</Text>
-          <Table>
-            <tr>
-              <TableHead>
-                <Text>Session Id</Text>
-              </TableHead>
-              <TableHead>
-                <Text>Voted For</Text>
-              </TableHead>
-              <TableHead>
-                <Text>Time Stamp</Text>
-              </TableHead>
-            </tr>
-            <tr>
-              {historyFetched.data.map((history) => (
-                <>
-                  <TableData>{history.sessionId}</TableData>
-                  <TableData>{history.candidateId}</TableData>
-                  <TableData>{toString(history.timeStamp)}</TableData>
-                </>
-              ))}
-            </tr>
-          </Table>
+          {fetchedHistory.data.length !== 0 ? (
+            <Table>
+              <tr>
+                <TableHead>
+                  <Text>Session Id</Text>
+                </TableHead>
+                <TableHead>
+                  <Text>Voted For</Text>
+                </TableHead>
+                <TableHead>
+                  <Text>Time Stamp</Text>
+                </TableHead>
+              </tr>
+              <tr>
+                {fetchedHistory.data.map((history) => (
+                  <>
+                    <TableData>{history.sessionId}</TableData>
+                    <TableData>{history.candidateId}</TableData>
+                    <TableData>{toString(history.timeStamp)}</TableData>
+                  </>
+                ))}
+              </tr>
+            </Table>
+          ) : (
+            <Text>No History</Text>
+          )}
         </>
       ) : null}
     </AnimatedContainer>
