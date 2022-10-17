@@ -1,12 +1,11 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { ethers } from "ethers";
-import { parseUnits } from "ethers/lib/utils";
 import { useRouter } from "next/router";
-import React, { useEffect, useState } from "react";
-import Loading from "../../../components/modal/Loading";
+import React, { useContext, useEffect, useState } from "react";
+import AnimatedContainer from "../../../components/AnimatedContainer";
+import AppContext from "../../../context/AppContext";
 import useContract from "../../../hooks/useContract";
 import {
-  AppContainer,
   AppTitle,
   Button,
   Card,
@@ -14,48 +13,79 @@ import {
   FlexRow,
   Input,
   Section,
-  Submit,
   Text,
 } from "../../../styles/styled-components/app/appComponents";
+import {
+  getCandidates,
+  getDetails,
+  getHistory,
+  getStatus,
+} from "../../../fetchers/sessionFetchers";
+import ValidateData from "../validateData";
+import { useLoading, useToast } from "../../../stores/stores";
 
 const Session = () => {
   const router = useRouter();
   const { sessionId } = router.query;
   const [selected, setSelected] = useState(0);
   const votingContract = useContract("voting");
-  const fetchedDetails = useQuery(["sessionDetails"], () => getDetails());
-  const fetchedHistory = useQuery(["sessionHistory"], () => getHistory());
-  const fetchedCandidates = useQuery(["sessionCandidates"], () =>
-    getCandidates()
+  const [error, success] = useToast();
+  const [, setLoading] = useLoading();
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  const user = useContext(AppContext).user;
+
+  const isVerified = useQuery(["status", sessionId, user], () =>
+    getStatus(sessionId, user)
   );
-  const voteMutation = useMutation(() => submitVote());
+  const fetchedDetails = useQuery(["sessionDetails", sessionId], () =>
+    getDetails(sessionId)
+  );
+  const fetchedHistory = useQuery(["sessionHistory", sessionId], () =>
+    getHistory(sessionId)
+  );
+  const fetchedCandidates = useQuery(["sessionCandidates", sessionId], () =>
+    getCandidates(sessionId)
+  );
+  const voteMutation = useMutation(() => submitVote(), {
+    onMutate: () => {
+      setLoading(true);
+    },
+    onError: () => {
+      setLoading(false);
+      error("Transaction Error");
+    },
+    onSuccess: () => {
+      setLoading(false);
+      success("Voting Success");
+    },
+  });
 
   const submitVote = async () => {
     const vote = await votingContract.vote(sessionId, selected);
-    return vote;
+    const listener = await provider.waitForTransaction(vote.hash);
+    return listener;
   };
 
-  const getDetails = async () => {
-    const details = await votingContract.votingDetails(sessionId);
-    return details;
-  };
-
-  const getCandidates = async () => {
-    const candidates = await votingContract.getCandidatesDetails(sessionId);
-    return candidates;
-  };
-
-  const getHistory = async () => {
-    const history = await votingContract.votingHistory(sessionId, 0);
-    return history;
+  const test = () => {
+    loading.setText("Test...");
+    loading.toggle();
   };
 
   const radioButtonHandler = (value) => {
-    setSelected((currentSelected) => value);
+    setSelected(value);
   };
 
+  useEffect(() => {
+    if (fetchedCandidates.isFetching) {
+      setLoading(true);
+    } else {
+      setLoading(false);
+    }
+  }, [fetchedCandidates.isLoading]);
+
+  if (!isVerified.data && !isVerified.isLoading) return <ValidateData />;
   return (
-    <AppContainer>
+    <AnimatedContainer>
       {!fetchedCandidates.isLoading ? (
         <>
           <Section>
@@ -77,7 +107,9 @@ const Session = () => {
             height={"75%"}
           >
             <Card width={"25%"} height={"100%"}>
-              <Text align={"center"}>Recent Votes</Text>
+              <Text align={"center"} margin={"5px 5px"}>
+                Recent Votes
+              </Text>
               <FlexColumn
                 alignItems={"center"}
                 justifyContent={"start"}
@@ -85,9 +117,14 @@ const Session = () => {
               >
                 {parseInt(fetchedHistory.data.timeStamp) !== 0 ? (
                   fetchedHistory.data.map((votes, index) => (
-                    <FlexRow key={index}>
-                      <Text>{votes.voter}</Text>
-                      <Text>{votes.timeStamp}</Text>
+                    <FlexRow
+                      key={index}
+                      alignItems={"center"}
+                      justifyContent={"space-around"}
+                    >
+                      <Text>{index + 1}.</Text>
+                      <Text>{votes.voter.slice(0, 12)}...</Text>
+                      <Text>{votes.candidateId}</Text>
                     </FlexRow>
                   ))
                 ) : (
@@ -112,8 +149,8 @@ const Session = () => {
                   Candidates
                 </Text>
                 <FlexRow alignItems={"start"} justifyContent={"center"}>
-                  {fetchedCandidates.data.map((details) => (
-                    <Section>
+                  {fetchedCandidates.data.map((details, index) => (
+                    <Section key={index}>
                       <Text margin={"5px auto"}>
                         {ethers.utils.parseBytes32String(details.candidate)}
                       </Text>
@@ -159,10 +196,8 @@ const Session = () => {
             </FlexColumn>
           </FlexRow>
         </>
-      ) : (
-        <Loading isLoading={fetchedCandidates.isLoading} text={"Loading"} />
-      )}
-    </AppContainer>
+      ) : null}
+    </AnimatedContainer>
   );
 };
 
