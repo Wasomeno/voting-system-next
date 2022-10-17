@@ -1,5 +1,3 @@
-import { useContext } from "react";
-import AppContext from "../context/AppContext";
 import useContract from "../hooks/useContract";
 
 export const getStatus = async (session, user) => {
@@ -24,4 +22,11 @@ export const getHistory = async (session) => {
   const votingContract = useContract("voting");
   const history = await votingContract.getHistory(session);
   return history;
+};
+
+export const getIsProposer = async (context) => {
+  console.log("Hellow");
+  const votingContract = useContract("voting");
+  const result = await votingContract.verifiedProposer(context.user);
+  return result;
 };
