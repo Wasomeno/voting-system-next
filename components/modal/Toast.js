@@ -1,40 +1,18 @@
 import React, { useContext, useEffect, useState } from "react";
-import useToggle from "../../../monster-game-next/hooks/useToggle";
-import AppContext from "../../context/AppContext";
+import { toastDetails, useToastDetails } from "../../stores/stores";
+import { Icon } from "../../styles/styled-components/home/navigationComponents";
 import {
   Text,
   ToastContainer,
 } from "../../styles/styled-components/modals/toastComponents";
 
 export const Toast = () => {
-  const toast = useContext(AppContext).toast;
+  const [show, text, condition] = useToastDetails();
 
-  //   useEffect(() => {}, [toast.show]);
   return (
-    <ToastContainer show={toast.show}>
-      <Text>{toast.text}</Text>
+    <ToastContainer show={show}>
+      <Text>{condition}</Text>
+      <Text>{text}</Text>
     </ToastContainer>
   );
 };
-
-const useToast = () => {
-  const [show, toggleShow] = useToggle(false);
-  const [text, setText] = useState("");
-
-  const error = (text) => {
-    setText(text);
-    toggleShow();
-    setTimeout(() => toggleShow(), 2500);
-  };
-
-  const success = (text) => {
-    setText(text);
-    toggleShow();
-
-    setTimeout(() => toggleShow(), 2500);
-  };
-
-  return [success, error, text, show];
-};
-
-export default useToast;
