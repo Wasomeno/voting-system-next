@@ -3,16 +3,23 @@ import Layout from "../components/Layout";
 import "../styles/globals.css";
 import { AnimatePresence } from "framer-motion";
 import AppContext from "../context/AppContext";
-import { useState } from "react";
-import useToast, { Toast } from "../components/modal/Toast";
+import { useEffect, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Loading } from "../components/modal/Loading";
+import { Toast } from "../components/modal/Toast";
 
 function MyApp({ Component, pageProps }) {
   const router = useRouter();
   const basePath = router.pathname.split("/");
-  const [success, error, text, show] = useToast();
   const [account, setAccount] = useState([]);
   const queryClient = new QueryClient();
+
+  useEffect(() => {
+    window.ethereum.on("chainChanged", () => {
+      window.location.reload();
+    });
+  }, []);
+
   return (
     <AnimatePresence>
       <QueryClientProvider client={queryClient}>
@@ -20,15 +27,10 @@ function MyApp({ Component, pageProps }) {
           value={{
             user: account[0],
             setAccount: setAccount,
-            toast: {
-              success: success,
-              error: error,
-              text: text,
-              show: show,
-            },
           }}
         >
           <Layout path={basePath[1]}>
+            <Loading />
             <Component {...pageProps} />
             <Toast />
           </Layout>
