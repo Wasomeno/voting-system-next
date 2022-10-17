@@ -5,18 +5,17 @@ import {
   Screen,
 } from "../../styles/styled-components/modals/loadingComponents";
 import Loader from "react-spinners/PuffLoader";
-import AppContext from "../../context/AppContext";
+import { useLoading } from "../../stores/stores";
 
-const Loading = () => {
-  const loadingContext = useContext(AppContext).loading;
+export const Loading = () => {
+  const [loading] = useLoading();
   return (
     <>
-      <LoadingContainer loading={loadingContext.isLoading ? 1 : 0}>
-        <Text align={"center"}>{loadingContext.text}</Text>
-        <Loader loading={loadingContext.isLoading} color={"#fff"} size={75} />
+      <LoadingContainer loading={loading ? 1 : 0}>
+        <Text align={"center"}>Loading</Text>
+        <Loader loading={loading} color={"#fff"} size={75} />
       </LoadingContainer>
-      <Screen loading={loadingContext.isLoading ? 1 : 0} />
+      <Screen loading={loading ? 1 : 0} />
     </>
   );
 };
-export default Loading;
